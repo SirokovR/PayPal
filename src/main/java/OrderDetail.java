@@ -7,6 +7,7 @@ public class OrderDetail {
 
     public OrderDetail(String productName, String subtotal,
                        String shipping, String tax, String total) {
+        super();
         this.productName = productName;
         this.subtotal = Float.parseFloat(subtotal);
         this.shipping = Float.parseFloat(shipping);
