@@ -9,6 +9,7 @@ public class PaymentServices {
     private static final String CLIENT_ID = "AeMrYO6xP9Ae0sbPZB2XyfWneGc1KiFv-7xaKnMf8k7ChTqgBcu0cwADhzFE-WvyShRWJEnbsomrI8Gg";
     private static final String CLIENT_SECRET = "EAe4SXfnGFQmsL5pugbWLQjcAUj13OiAZRwegRPx-WBnf8rf4guXl_TM-sheGjmGSpUBy1jmAWTX1DnV";
     private static final String MODE = "sandbox";
+
     public String authorizePayment(OrderDetail orderDetail)
             throws PayPalRESTException {
 
@@ -23,12 +24,9 @@ public class PaymentServices {
         requestPayment.setIntent("authorize");
 
         APIContext apiContext = new APIContext(CLIENT_ID, CLIENT_SECRET, MODE);
-
         Payment approvedPayment = requestPayment.create(apiContext);
 
-        System.out.println("=== CREATED PAYMENT: ====");
         System.out.println(approvedPayment);
-
         return getApprovalLink(approvedPayment);
 
     }
@@ -37,21 +35,18 @@ public class PaymentServices {
         Payer payer = new Payer();
         payer.setPaymentMethod("paypal");
 
-        PayerInfo payerInfo = new PayerInfo();
-        payerInfo.setFirstName("William")
-                .setLastName("Peterson")
-                .setEmail("william.peterson@company.com");
-
+        PayerInfo payerInfo =  new PayerInfo();
+        payerInfo.setFirstName("Roman")
+                .setLastName("Tati")
+                .setEmail("laisk1@hotmail.com");
         payer.setPayerInfo(payerInfo);
-
         return payer;
     }
 
     private RedirectUrls getRedirectURLs() {
         RedirectUrls redirectUrls = new RedirectUrls();
-        redirectUrls.setCancelUrl("http://localhost:8080/PaypalTest/cancel.jsp");
-        redirectUrls.setReturnUrl("http://localhost:8080/PaypalTest/review_payment");
-
+        redirectUrls.setCancelUrl("http://localhost:8088/PayPal_war/cancel.html");
+        redirectUrls.setReturnUrl("http://localhost:8088/PayPal_war/review_payment");
         return redirectUrls;
     }
 
@@ -70,15 +65,15 @@ public class PaymentServices {
         transaction.setAmount(amount);
         transaction.setDescription(orderDetail.getProductName());
 
-        ItemList itemList = new ItemList();
+        ItemList itemList =  new ItemList();
         List<Item> items = new ArrayList<>();
 
         Item item = new Item();
-        item.setCurrency("USD");
-        item.setName(orderDetail.getProductName());
-        item.setPrice(orderDetail.getSubtotal());
-        item.setTax(orderDetail.getTax());
-        item.setQuantity("1");
+        item.setCurrency("USD")
+                .setName(orderDetail.getProductName())
+                .setPrice(orderDetail.getSubtotal())
+                .setTax(orderDetail.getTax())
+                .setQuantity("1");
 
         items.add(item);
         itemList.setItems(items);
@@ -87,24 +82,29 @@ public class PaymentServices {
         List<Transaction> listTransaction = new ArrayList<>();
         listTransaction.add(transaction);
 
-        return listTransaction;
+        return  listTransaction;
     }
 
     private String getApprovalLink(Payment approvedPayment) {
         List<Links> links = approvedPayment.getLinks();
         String approvalLink = null;
-
-        for (Links link : links) {
-            if (link.getRel().equalsIgnoreCase("approval_url")) {
+        for (Links link: links){
+            if (link.getRel().equalsIgnoreCase("approval_url")){
                 approvalLink = link.getHref();
                 break;
+
             }
         }
-
         return approvalLink;
     }
 
-    public Payment executePayment(String paymentId, String payerId) throws PayPalRESTException {
+    public Payment getPaymentDetails(String paymentId) throws PayPalRESTException {
+        APIContext apiContext = new APIContext(CLIENT_ID, CLIENT_SECRET, MODE);
+        return Payment.get(apiContext, paymentId);
+    }
+
+    public Payment executePayment(String paymentId, String payerId)
+            throws PayPalRESTException {
         PaymentExecution paymentExecution = new PaymentExecution();
         paymentExecution.setPayerId(payerId);
 
@@ -113,10 +113,5 @@ public class PaymentServices {
         APIContext apiContext = new APIContext(CLIENT_ID, CLIENT_SECRET, MODE);
 
         return payment.execute(apiContext, paymentExecution);
-    }
-
-    public Payment getPaymentDetails(String paymentId) throws PayPalRESTException {
-        APIContext apiContext = new APIContext(CLIENT_ID, CLIENT_SECRET, MODE);
-        return Payment.get(apiContext, paymentId);
     }
 }

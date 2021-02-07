@@ -31,8 +31,8 @@ public class AuthorizePaymentServlet extends HttpServlet {
             response.sendRedirect(approvalLink);
 
         } catch (PayPalRESTException ex) {
-            request.setAttribute("errorMessage", ex.getMessage());
             ex.printStackTrace();
+            request.setAttribute("errorMessage", "Invalid Payment Details");
             request.getRequestDispatcher("error.jsp").forward(request, response);
         }
 
